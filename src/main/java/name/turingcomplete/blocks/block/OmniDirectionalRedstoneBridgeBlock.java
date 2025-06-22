@@ -1,6 +1,7 @@
 package name.turingcomplete.blocks.block;
 
 import name.turingcomplete.blocks.AbstractLogicBlock;
+import name.turingcomplete.init.blockInit;
 import name.turingcomplete.init.propertyInit;
 import net.minecraft.block.*;
 import net.minecraft.state.StateManager;
@@ -16,8 +17,8 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
 public class OmniDirectionalRedstoneBridgeBlock extends AbstractLogicBlock {
-    private static final IntProperty POWER_Z;
-    private static final IntProperty POWER_X;
+    static final IntProperty POWER_Z;
+    static final IntProperty POWER_X;
 
     private static final Vec3d[] COLORS;
 
@@ -54,6 +55,7 @@ public class OmniDirectionalRedstoneBridgeBlock extends AbstractLogicBlock {
         }
     }
 
+    @Override
     protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (!moved && !state.isOf(newState.getBlock())) {
             super.onStateReplaced(state, world, pos, newState, false);
@@ -184,7 +186,8 @@ public class OmniDirectionalRedstoneBridgeBlock extends AbstractLogicBlock {
 
         for (Direction direction : directions) {
             int j = world.getEmittedRedstonePower(pos.offset(direction), direction);
-            if (world.getBlockState(pos.offset(direction)).isOf(Blocks.REDSTONE_WIRE))
+            BlockState sender_block_state = world.getBlockState(pos.offset(direction));
+            if (sender_block_state.isOf(Blocks.REDSTONE_WIRE) || sender_block_state.isOf(blockInit.LOGIC_BASE_PLATE_BLOCK))
                 j = j-1;
 
             if (j >= 15) return 15;
@@ -222,7 +225,7 @@ public class OmniDirectionalRedstoneBridgeBlock extends AbstractLogicBlock {
 
         BlockState block_to_power = world.getBlockState(pos.offset(direction.getOpposite()));
 
-        if (block_to_power.isOf(Blocks.REDSTONE_WIRE)){
+        if (block_to_power.isOf(Blocks.REDSTONE_WIRE) || block_to_power.isOf(blockInit.LOGIC_BASE_PLATE_BLOCK)){
             if (direction.getAxis() == Direction.Axis.X)
                 return state.get(POWER_X) -1;
             else if (direction.getAxis() == Direction.Axis.Z)
