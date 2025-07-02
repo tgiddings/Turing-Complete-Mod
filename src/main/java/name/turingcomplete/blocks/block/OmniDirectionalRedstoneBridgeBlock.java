@@ -153,6 +153,7 @@ public class OmniDirectionalRedstoneBridgeBlock extends AbstractLogicBlock {
     private int getReceivedPowerOnAxis(World world, BlockPos pos, Direction.Axis axis){
         // Get Received Power By This Block Position
         this.wiresGivePower = false;
+        //gets power from non-wire
         int received = this.getReceivedRedstonePower(world,pos,axis);
         this.wiresGivePower = true;
 
@@ -168,6 +169,7 @@ public class OmniDirectionalRedstoneBridgeBlock extends AbstractLogicBlock {
                     BlockPos blockPos = pos.offset(direction);
                     BlockState blockState = world.getBlockState(blockPos);
 
+                    //increasePower gets the power from wires
                     // Sets nearby_power If The Block Has a Bigger Power Level Then The Currently Highest
                     nearby_power = Math.max(nearby_power, this.increasePower(blockState, axis));
                 }
@@ -179,22 +181,22 @@ public class OmniDirectionalRedstoneBridgeBlock extends AbstractLogicBlock {
     }
 
     private int getReceivedRedstonePower(World world, BlockPos pos, Direction.Axis axis) {
-        int i = 0;
+        int maxConnectedPower = 0;
         Direction[] directions = new Direction[]{};
         if (axis == Direction.Axis.X) directions = new Direction[]{Direction.EAST, Direction.WEST};
         if (axis == Direction.Axis.Z) directions = new Direction[]{Direction.NORTH, Direction.SOUTH};
 
         for (Direction direction : directions) {
-            int j = world.getEmittedRedstonePower(pos.offset(direction), direction);
+            int connectedPower = world.getEmittedRedstonePower(pos.offset(direction), direction);
             BlockState sender_block_state = world.getBlockState(pos.offset(direction));
             if (sender_block_state.isOf(Blocks.REDSTONE_WIRE) || sender_block_state.isOf(blockInit.LOGIC_BASE_PLATE_BLOCK))
-                j = j-1;
+                connectedPower = connectedPower-1;
 
-            if (j >= 15) return 15;
-            if (j > i) i = j;
+            if (connectedPower >= 15) return 15;
+            if (connectedPower > maxConnectedPower) maxConnectedPower = connectedPower;
         }
 
-        return i;
+        return maxConnectedPower;
     }
 
     private int increasePower(BlockState state, Direction.Axis axis) {
